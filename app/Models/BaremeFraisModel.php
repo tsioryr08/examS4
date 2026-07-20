@@ -59,37 +59,38 @@ class BaremeFraisModel extends Model
 
         return $builder->countAllResults() > 0;
     }
+
     // Regroupe les barèmes par opérateur puis par type d'opération
-public function getBaremesGroupes(?int $idOperateur = null): array
-{
-    $lignes = $this->select('bareme_frais.*, operateur.id as op_id, operateur.libelle as operateur_libelle, operateur.code as operateur_code, type_operation.nom as type_nom')
-        ->join('operateur', 'operateur.id = bareme_frais.id_operateur')
-        ->join('type_operation', 'type_operation.id = bareme_frais.id_type_operation')
-        ->orderBy('operateur.libelle')
-        ->orderBy('type_operation.nom')
-        ->orderBy('bareme_frais.montant_min');
+    public function getBaremesGroupes(?int $idOperateur = null): array
+    {
+        $lignes = $this->select('bareme_frais.*, operateur.id as op_id, operateur.libelle as operateur_libelle, operateur.code as operateur_code, type_operation.nom as type_nom')
+            ->join('operateur', 'operateur.id = bareme_frais.id_operateur')
+            ->join('type_operation', 'type_operation.id = bareme_frais.id_type_operation')
+            ->orderBy('operateur.libelle')
+            ->orderBy('type_operation.nom')
+            ->orderBy('bareme_frais.montant_min');
 
-    if ($idOperateur) {
-        $lignes->where('bareme_frais.id_operateur', $idOperateur);
-    }
-
-    $lignes = $lignes->findAll();
-
-    $groupes = [];
-    foreach ($lignes as $ligne) {
-        $opId = $ligne['op_id'];
-
-        if (! isset($groupes[$opId])) {
-            $groupes[$opId] = [
-                'libelle' => $ligne['operateur_libelle'],
-                'code'    => $ligne['operateur_code'],
-                'types'   => [],
-            ];
+        if ($idOperateur) {
+            $lignes->where('bareme_frais.id_operateur', $idOperateur);
         }
 
-        $groupes[$opId]['types'][$ligne['type_nom']][] = $ligne;
-    }
+        $lignes = $lignes->findAll();
 
-    return $groupes;
-}
+        $groupes = [];
+        foreach ($lignes as $ligne) {
+            $opId = $ligne['op_id'];
+
+            if (! isset($groupes[$opId])) {
+                $groupes[$opId] = [
+                    'libelle' => $ligne['operateur_libelle'],
+                    'code'    => $ligne['operateur_code'],
+                    'types'   => [],
+                ];
+            }
+
+            $groupes[$opId]['types'][$ligne['type_nom']][] = $ligne;
+        }
+
+        return $groupes;
+    }
 }
