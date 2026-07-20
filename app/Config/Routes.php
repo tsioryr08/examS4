@@ -51,3 +51,6 @@ $routes->post('retrait/valider', 'ClientController::retraitValider');
 // pour le transfert
 $routes->get('transfert', 'ClientController::transfert');
 $routes->post('transfert/valider', 'ClientController::transfertValider');
+// pour le transfert multiple
+$routes->get('transfert/multiple', 'ClientController::transfertMultiple');
+$routes->post('transfert/multiple/valider', 'ClientController::transfertMultipleValider');

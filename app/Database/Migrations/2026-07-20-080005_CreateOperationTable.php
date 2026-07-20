@@ -10,37 +10,51 @@ class CreateOperationTable extends Migration
     {
         $this->forge->addField([
             'id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'unsigned' => true,
+                'type'           => 'INT',
+                'constraint'     => 11,
+                'unsigned'       => true,
                 'auto_increment' => true,
             ],
             'id_client' => [
-                'type' => 'INT',
+                'type'       => 'INT',
                 'constraint' => 11,
-                'unsigned' => true,
+                'unsigned'   => true,
             ],
             'destinataire_id' => [
-                'type' => 'INT',
+                'type'       => 'INT',
                 'constraint' => 11,
-                'unsigned' => true,
-                'null' => true,
+                'unsigned'   => true,
+                'null'       => true,
             ],
             'id_type_operation' => [
-                'type' => 'INT',
+                'type'       => 'INT',
                 'constraint' => 11,
-                'unsigned' => true,
+                'unsigned'   => true,
             ],
             'montant' => [
-                'type' => 'DECIMAL',
+                'type'       => 'DECIMAL',
                 'constraint' => '10,2',
             ],
             'frais' => [
-                'type' => 'DECIMAL',
+                'type'       => 'DECIMAL',
                 'constraint' => '10,2',
-                'default' => 0,
+                'default'    => 0,
             ],
-            'date_operation DATETIME DEFAULT CURRENT_TIMESTAMP',
+            'frais_retrait' => [
+                'type'       => 'DECIMAL',
+                'constraint' => '10,2',
+                'null'       => true,
+            ],
+            'id_autre_operateur' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+                'unsigned'   => true,
+                'null'       => true,
+            ],
+            'date_operation' => [
+                'type'    => 'DATETIME',
+                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP'),
+            ],
         ]);
 
         $this->forge->addKey('id', true);
@@ -48,6 +62,7 @@ class CreateOperationTable extends Migration
         $this->forge->addForeignKey('id_client', 'client', 'id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('destinataire_id', 'client', 'id', 'CASCADE', 'SET NULL');
         $this->forge->addForeignKey('id_type_operation', 'type_operation', 'id', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('id_autre_operateur', 'autre_operateur', 'id', 'CASCADE', 'SET NULL');
 
         $this->forge->createTable('operation');
     }

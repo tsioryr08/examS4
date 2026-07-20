@@ -14,6 +14,7 @@ class TypeOperationModel extends Model
     protected $allowedFields    = ['nom'];
 
     protected $validationRules = [
+        'id'  => 'permit_empty|integer',
         'nom' => 'required|min_length[3]|max_length[50]|is_unique[type_operation.nom,id,{id}]',
     ];
 }
