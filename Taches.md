@@ -31,6 +31,7 @@
 ### RAFALIMANANA Tsiory Fandresena — Côté client
 
 - [] Route + vue login (formulaire numéro de téléphone)
+    -[] Creation page login dans /client avec comme champ numero de tel seulement 
 - [] Contrôleur login : vérifier préfixe valide
 - [] Contrôleur login : créer client auto si numéro inconnu (solde 0)
 - [] Session client connecté
