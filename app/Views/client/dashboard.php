@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Mon compte - Mobile Money</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="<?= base_url('assets/css/mobile-money.css') ?>" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="mm-page">
 <div class="container py-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -15,8 +16,7 @@
 
     <?php if (!empty($notifications)): ?>
     <?php foreach ($notifications as $notif): ?>
-        <div class="d-flex align-items-center gap-2 px-3 py-2 mb-2 rounded"
-             style="background-color:#e7f5ff; border-left: 3px solid #2D7DD2; font-size: 0.85rem;">
+        <div class="mm-notification d-flex align-items-center gap-2 px-3 py-2 mb-2 rounded" style="font-size: 0.85rem;">
             <span>💸</span>
             <span>
                 Vous avez reçu <strong><?= number_format($notif['montant'], 0, ',', ' ') ?> Ar</strong>
@@ -35,7 +35,7 @@
     <?php endif; ?>
 
 
-    <div class="card text-white bg-primary mb-4">
+    <div class="card mm-balance-card mb-4">
         <div class="card-body">
             <h6 class="card-subtitle mb-1">Solde actuel</h6>
             <h2 class="card-title mb-0"><?= number_format($client['solde'], 0, ',', ' ') ?> Ar</h2>

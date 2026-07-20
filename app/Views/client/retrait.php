@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Retrait - Mobile Money</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="<?= base_url('assets/css/mobile-money.css') ?>" rel="stylesheet">
 </head>
-<body class="bg-light">
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="card shadow-sm" style="width: 350px;">
+<body class="mm-page">
+<div class="mm-shell">
+    <div class="card mm-card mm-fade-in" style="width: 350px;">
         <div class="card-body">
             <h4 class="card-title text-center mb-4">Retrait</h4>
 
@@ -20,8 +21,8 @@
             <form action="<?= site_url('retrait/valider') ?>" method="post">
                 <?= csrf_field() ?>
                 <div class="mb-3">
-                    <label class="form-label">Montant à retirer (Ar)</label>
-                    <input type="number" name="montant" class="form-control" min="1" required>
+                    <label class="form-label" for="montant">Montant à retirer (Ar)</label>
+                    <input id="montant" type="number" name="montant" class="form-control" min="1" required>
                 </div>
                 <button type="submit" class="btn btn-warning w-100">Valider le retrait</button>
                 <a href="<?= site_url('dashboard') ?>" class="btn btn-link w-100 mt-2">Annuler</a>
