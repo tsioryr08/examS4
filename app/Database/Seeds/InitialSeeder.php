@@ -26,7 +26,7 @@ class InitialSeeder extends Seeder
         ]);
 
         // ============================================
-        // Bareme de frais - Orange (id_operateur = 1)
+        // Bareme de frais - Airtel (id_operateur = 1)
         // ============================================
 
         // Retrait (id_type_operation = 2)
@@ -56,7 +56,7 @@ class InitialSeeder extends Seeder
         ]);
 
         // ============================================
-        // Bareme de frais - Airtel (id_operateur = 2)
+        // Bareme de frais - Orange (id_operateur = 2)
         // ============================================
 
         // Retrait (id_type_operation = 2)
