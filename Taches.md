@@ -13,20 +13,20 @@
 
 ### Base de données (commun)
 
-- [] Schéma `operateur`, `client`, `type_operation`, `bareme_frais`, `operation`
-- [] Contrainte solde >= 0 sur `client`
-- [] Fichier `base.sql` à la racine (tables + données)
-- [] Migrations CodeIgniter correspondantes
-- [] Seeder `InitialSeeder` (données de base)
+- [ok] Schéma `operateur`, `client`, `type_operation`, `bareme_frais`, `operation`
+- [ok] Contrainte solde >= 0 sur `client`
+- [ok] Fichier `base.sql` à la racine (tables + données)
+- [ok] Migrations CodeIgniter correspondantes
+- [ok] Seeder `InitialSeeder` (données de base)
 
 ### RAKOTONJANAHARY Hajaniaina Olivier — Côté opérateur
 
-- [] Config préfixes opérateur (033, 037) - table `operateur`
-- [] CRUD types d'opération (dépôt, retrait, transfert)
-- [] CRUD barème de frais par tranche (modifiable, par opérateur + type)
-- [] Fonction de calcul du frais selon montant + opérateur + type
-- [] Écran gains par type de frais (retrait / transfert)
-- [] Écran situation des comptes clients (liste + soldes)
+- [ok] Config préfixes opérateur (033, 037) - table `operateur`
+- [ok] CRUD types d'opération (dépôt, retrait, transfert)
+- [ok] CRUD barème de frais par tranche (modifiable, par opérateur + type)
+- [ok] Fonction de calcul du frais selon montant + opérateur + type
+- [ok] Écran gains par type de frais (retrait / transfert)
+- [ok] Écran situation des comptes clients (liste + soldes)
 
 ### RAFALIMANANA Tsiory Fandresena — Côté client
 
