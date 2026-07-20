@@ -14,6 +14,7 @@ class OperateurModel extends Model
     protected $allowedFields    = ['libelle', 'code'];
 
     protected $validationRules = [
+        'id'      => 'permit_empty|integer',
         'libelle' => 'required|min_length[2]|max_length[100]',
         'code'    => 'required|min_length[2]|max_length[10]|is_unique[operateur.code,id,{id}]',
     ];

@@ -14,6 +14,7 @@ class ClientModel extends Model
     protected $allowedFields    = ['numero', 'nom', 'prenom', 'solde', 'id_operateur'];
 
     protected $validationRules = [
+        'id'            => 'permit_empty|integer',
         'numero'       => 'required|min_length[9]|is_unique[client.numero,id,{id}]',
         'id_operateur' => 'required|integer',
     ];
