@@ -30,15 +30,16 @@
 
 ### RAFALIMANANA Tsiory Fandresena — Côté client
 
-- [] Route + vue login (formulaire numéro de téléphone)
-    -[] Creation page login dans /client avec comme champ numero de tel seulement 
-- [] Contrôleur login : vérifier préfixe valide
-- [] Contrôleur login : créer client auto si numéro inconnu (solde 0)
-- [] Session client connecté
-- [] Écran solde
-- [] Formulaire + traitement dépôt
-- [] Formulaire + traitement retrait (vérifier solde suffisant)
-- [] Formulaire + traitement transfert (vérifier solde suffisant + destinataire existe)
-- [] Écran historique des opérations du client
+- [ok] Route + vue login (formulaire numéro de téléphone)
+    -[ok] Creation page login dans /client avec comme champ numero de tel seulement 
+- [ok] Contrôleur login : vérifier préfixe valide
+    - [ok] erreur si prefixe invalide 
+- [ok] Contrôleur login : créer client auto si numéro inconnu (avec solde 0)
+- [ok] Session client connecté
+- [ok] Écran solde
+- [ok] Formulaire + traitement dépôt
+- [ok] Formulaire + traitement retrait (vérifier solde suffisant)
+- [ok] Formulaire + traitement transfert (vérifier solde suffisant + destinataire existe)
+- [ok] Écran historique des opérations du client
 
 ---
