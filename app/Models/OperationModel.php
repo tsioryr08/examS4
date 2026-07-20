@@ -11,9 +11,10 @@ class OperationModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useTimestamps    = false;
-    protected $allowedFields    = [
-        'id_client', 'destinataire_id', 'id_type_operation', 'montant', 'frais', 'date_operation',
-    ];
+    protected $allowedFields = [
+    'id_client', 'destinataire_id', 'id_type_operation',
+    'montant', 'frais', 'frais_retrait', 'id_autre_operateur', 'date_operation',
+];
 
     public function getGainsParType(?string $dateDebut = null, ?string $dateFin = null, ?int $idOperateur = null)
     {

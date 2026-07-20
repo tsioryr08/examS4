@@ -43,3 +43,28 @@
 - [ok] Écran historique des opérations du client
 
 ---
+
+
+## Version 2 (Tag : v2)
+
+### RAKOTONJANAHARY Hajaniaina Olivier — Côté opérateur
+
+- [] Config préfixes valables pour les autres opérateurs (ex: 032, 031...) - étendre table `operateur`
+- [] Config commission (%) sur transferts vers un autre opérateur (nouvelle colonne ou table dédiée, ex: `commission_inter_operateur`)
+- [] Fonction de calcul de la commission selon opérateur émetteur + opérateur destinataire
+- [] Page "Gains" : séparer visuellement/statistiquement mon opérateur vs les autres opérateurs
+- [] Écran "Montants à envoyer à chaque opérateur" (agrégation des sommes dues entre opérateurs suite aux transferts inter-opérateurs)
+
+### RAFALIMANANA Tsiory Fandresena — Côté client
+- [ok] modif: si essaie de creer un client de type autre operateur -> la bloquer
+  - [ok] sinon , on la cree si de notre operateur
+- [] Formulaire transfert : checkbox "Inclure les frais de retrait du destinataire"
+  - [] Calculer les frais de retrait qui s'appliqueraient au destinataire
+  - [] Ajouter ce montant au débit de l'expéditeur (montant + frais transfert + frais retrait destinataire)
+  - [] Créditer le destinataire du montant net voulu + frais de retrait anticipés
+- [] Formulaire "Envoi multiple" : plusieurs numéros + un montant total
+  - [] Diviser le montant total en parts égales selon le nombre de destinataires
+  - [] Calculer les frais de transfert par part (pas sur le total) selon barème/tranche
+  - [] Vérifier solde suffisant pour couvrir toutes les parts + tous les frais
+  - [] Vérifier que chaque numéro destinataire existe (ou créer si logique cohérente avec v1)
+  - [] Enregistrer une opération par destinataire dans l'historique
