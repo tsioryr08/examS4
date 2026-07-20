@@ -27,6 +27,9 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Se connecter</button>
                 </form>
+                <div class="d-flex">
+                    <a href="<?= site_url('operateurs') ?>" class="btn btn-outline-secondary w-100">Accéder à l'espace opérateur</a>
+                </div>
             </div>
         </div>
     </div>

@@ -12,12 +12,15 @@
 <nav class="navbar navbar-expand-lg navbar-dark mm-navbar mb-4">
     <div class="container">
         <a class="navbar-brand" href="/">Gestion Opérateur</a>
-        <div class="navbar-nav">
+        <div class="navbar-nav me-auto">
             <a class="nav-link" href="/operateurs">Opérateurs</a>
             <a class="nav-link" href="/types-operation">Types d'opération</a>
             <a class="nav-link" href="/baremes">Barème de frais</a>
             <a class="nav-link" href="/gains">Gains</a>
             <a class="nav-link" href="/comptes-clients">Comptes clients</a>
+        </div>
+        <div class="d-flex">
+            <a href="<?= site_url('login') ?>" class="btn btn-outline-light">Se déconnecter</a>
         </div>
     </div>
 </nav>
