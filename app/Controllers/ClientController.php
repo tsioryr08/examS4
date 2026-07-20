@@ -12,47 +12,90 @@ class ClientController extends BaseController
         return view('client/login');
     }
 
-    public function verifier()
-    {
-        $numero = trim($this->request->getPost('numero'));
+    // public function verifier()
+    // {
+    //     $numero = trim($this->request->getPost('numero'));
 
-        //numero a 10 chiffres 
-        if (empty($numero) || !preg_match('/^0\d{9}$/', $numero)) {
-            return redirect()->to('/login')->with('error', 'Numéro invalide. Format attendu : 10 chiffres');
-        }
+    //     //numero a 10 chiffres 
+    //     if (empty($numero) || !preg_match('/^0\d{9}$/', $numero)) {
+    //         return redirect()->to('/login')->with('error', 'Numéro invalide. Format attendu : 10 chiffres');
+    //     }
 
-        //prendre le prefixe pour verifier il est dans quel operateur 
-        $prefixe = substr($numero, 0, 3);
+    //     //prendre le prefixe pour verifier il est dans quel operateur 
+    //     $prefixe = substr($numero, 0, 3);
 
-        $operateurModel = new OperateurModel();
-        $operateur = $operateurModel->where('code', $prefixe)->first();
+    //     $operateurModel = new OperateurModel();
+    //     $operateur = $operateurModel->where('code', $prefixe)->first();
 
-        if (!$operateur) {
-            return redirect()->to('/login')->with('error', 'Ce préfixe n\'est reconnu par aucun opérateur.');
-        }
+    //     if (!$operateur) {
+    //         return redirect()->to('/login')->with('error', 'Ce préfixe n\'est reconnu par aucun opérateur.');
+    //     }
 
-        //Chercher le premier client qui correspond au numero saisi 
-        $clientModel = new ClientModel();
-        $client = $clientModel->where('numero', $numero)->first();
+    //     //Chercher le premier client qui correspond au numero saisi 
+    //     $clientModel = new ClientModel();
+    //     $client = $clientModel->where('numero', $numero)->first();
 
-        //si le numero saisi n existe pas, on create avec solde 0 avec l'id qui correspond
-        if (!$client) {
-            $clientId = $clientModel->insert([
-                'numero'       => $numero,
-                'solde'        => 0,
-                'id_operateur' => $operateur['id'],
-            ]);
+    //     //si le numero saisi n existe pas, on create avec solde 0 avec l'id qui correspond
+    //     if (!$client) {
+    //         $clientId = $clientModel->insert([
+    //             'numero'       => $numero,
+    //             'solde'        => 0,
+    //             'id_operateur' => $operateur['id'],
+    //         ]);
 
-            $client = $clientModel->find($clientId);
-        }
+    //         $client = $clientModel->find($clientId);
+    //     }
 
-        //sessioner pour recup les infos du client co
-        session()->set('client_id', $client['id']);
-        session()->set('client_numero', $client['numero']);
-        session()->set('operateur_id', $client['id_operateur']);
+    //     //sessioner pour recup les infos du client co
+    //     session()->set('client_id', $client['id']);
+    //     session()->set('client_numero', $client['numero']);
+    //     session()->set('operateur_id', $client['id_operateur']);
 
-        return redirect()->to('/dashboard');
+    //     return redirect()->to('/dashboard');
+    // }
+
+
+        public function verifier()
+{
+    $numero = trim($this->request->getPost('numero'));
+
+    // 1. Validation du format
+    if (empty($numero) || !preg_match('/^0\d{9}$/', $numero)) {
+        return redirect()->to('/login')->with('error', 'Numéro invalide. Format attendu : 0331234567');
     }
+
+    $prefixe = substr($numero, 0, 3);
+
+    // 2. Verifier que le prefixe correspond a NOTRE operateur
+    $operateurModel = new OperateurModel();
+    $operateur = $operateurModel->where('code', $prefixe)->first();
+
+    if (!$operateur) {
+        return redirect()->to('/login')->with('error', 'Ce préfixe n\'est pas pris en charge par notre opérateur.');
+    }
+
+    // 3. Chercher le client existant
+    $clientModel = new ClientModel();
+    $client = $clientModel->where('numero', $numero)->first();
+
+    // 4. Creation automatique si inconnu (solde 0)
+    if (!$client) {
+        $clientId = $clientModel->insert([
+            'numero'       => $numero,
+            'solde'        => 0,
+            'id_operateur' => $operateur['id'],
+        ]);
+
+        $client = $clientModel->find($clientId);
+    }
+
+    // 5. Ouvrir la session
+    session()->set('client_id', $client['id']);
+    session()->set('client_numero', $client['numero']);
+    session()->set('operateur_id', $client['id_operateur']);
+
+    return redirect()->to('/dashboard');
+}
 
 //pouravoir les notifs de transfert recu
         public function dashboard()
@@ -296,7 +339,6 @@ private function getIdTypeOperation(string $nom): int
 
     return view('client/transfert', ['client' => $client]);
 }
-
 public function transfertValider()
 {
     $clientId = session()->get('client_id');
@@ -306,6 +348,7 @@ public function transfertValider()
 
     $numeroDestinataire = trim($this->request->getPost('numero_destinataire'));
     $montant = (float) $this->request->getPost('montant');
+    $inclureFraisRetrait = (bool) $this->request->getPost('inclure_frais_retrait');
 
     if ($montant <= 0) {
         return redirect()->to('/transfert')->with('error', 'Montant invalide.');
@@ -319,60 +362,286 @@ public function transfertValider()
         return redirect()->to('/login');
     }
 
-    // Empecher de se transferer a soi-meme
     if ($numeroDestinataire === $client['numero']) {
         return redirect()->to('/transfert')->with('error', 'Impossible de transférer vers votre propre numéro.');
     }
 
-    // Verifier que le destinataire existe
-    $destinataire = $clientModel->where('numero', $numeroDestinataire)->first();
-
-    if (!$destinataire) {
-        return redirect()->to('/transfert')->with('error', 'Ce numéro de destinataire n\'existe pas.');
-    }
-
-    // Calculer le frais selon le bareme de l'operateur de l'EXPEDITEUR
+    $prefixeDestinataire = substr($numeroDestinataire, 0, 3);
     $idTypeTransfert = $this->getIdTypeOperation('transfert');
-    $frais = $this->calculerFrais($montant, $client['id_operateur'], $idTypeTransfert);
-    $totalADeduire = $montant + $frais;
 
-    // Verification du solde AVANT de toucher a quoi que ce soit
-    if ($client['solde'] < $totalADeduire) {
-        return redirect()->to('/transfert')->with('error', 'Solde insuffisant pour ce transfert (montant + frais).');
+    // Determiner si le destinataire est chez NOTRE operateur
+    $operateurModel = new OperateurModel();
+    $operateurDestinataire = $operateurModel->where('code', $prefixeDestinataire)->first();
+
+    $fraisTransfert = $this->calculerFrais($montant, $client['id_operateur'], $idTypeTransfert);
+
+    if ($operateurDestinataire) {
+        // ============================================
+        // CAS 1 : meme operateur (destinataire chez nous)
+        // ============================================
+        $clientDestModel = new ClientModel();
+        $destinataire = $clientDestModel->where('numero', $numeroDestinataire)->first();
+
+        if (!$destinataire) {
+            return redirect()->to('/transfert')->with('error', 'Ce numéro de destinataire n\'existe pas.');
+        }
+
+        $fraisRetrait = 0;
+        if ($inclureFraisRetrait) {
+            $idTypeRetrait = $this->getIdTypeOperation('retrait');
+            $fraisRetrait = $this->calculerFrais($montant, $destinataire['id_operateur'], $idTypeRetrait);
+        }
+
+        $totalADeduire = $montant + $fraisTransfert + $fraisRetrait;
+
+        if ($client['solde'] < $totalADeduire) {
+            return redirect()->to('/transfert')->with('error', 'Solde insuffisant.');
+        }
+
+        $this->db = \Config\Database::connect();
+        $this->db->transStart();
+
+        // Debiter expediteur (montant + frais transfert + frais retrait anticipes)
+        $clientModel->update($clientId, ['solde' => $client['solde'] - $totalADeduire]);
+
+        // Crediter destinataire (montant + frais retrait anticipes si option cochee)
+        $clientDestModel->update($destinataire['id'], [
+            'solde' => $destinataire['solde'] + $montant + $fraisRetrait,
+        ]);
+
+        $operationModel = new \App\Models\OperationModel();
+        $operationModel->insert([
+            'id_client'          => $clientId,
+            'destinataire_id'    => $destinataire['id'],
+            'id_type_operation'  => $idTypeTransfert,
+            'montant'            => $montant,
+            'frais'              => $fraisTransfert,
+            'frais_retrait'      => $fraisRetrait,
+            'id_autre_operateur' => null,
+            'date_operation'     => date('Y-m-d H:i:s'),
+        ]);
+
+        $this->db->transComplete();
+
+        $messageMontant = $montant;
+
+    } else {
+        // ============================================
+        // CAS 2 : autre operateur (destinataire externe)
+        // ============================================
+        $autreOperateurModel = new \App\Models\AutreOperateurModel();
+        $autreOperateur = $autreOperateurModel->where('code', $prefixeDestinataire)->first();
+
+        if (!$autreOperateur) {
+            return redirect()->to('/transfert')->with('error', 'Numéro de destinataire non reconnu.');
+        }
+
+        // Bloquer si le checkbox "frais de retrait" est coche : impossible pour un autre operateur
+        if ($inclureFraisRetrait) {
+            return redirect()->to('/transfert')->with('error',
+                'Impossible d\'inclure les frais de retrait pour un transfert vers un autre opérateur (' . esc($autreOperateur['libelle']) . ').');
+        }
+
+        // Recuperer le taux de commission pour cet autre operateur + ce type d'operation
+        $commissionModel = new \App\Models\CommissionModel();
+        $commission = $commissionModel
+            ->where('id_autre_operateur', $autreOperateur['id'])
+            ->where('id_type_operation', $idTypeTransfert)
+            ->first();
+
+        if (!$commission) {
+            return redirect()->to('/transfert')->with('error',
+                'Aucune commission configurée pour ' . esc($autreOperateur['libelle']) . '.');
+        }
+
+        $montantCommission = $montant * ($commission['pourcent_commit'] / 100);
+
+        // Pas de frais de retrait pour un autre operateur (regle v2)
+        $totalADeduire = $montant + $fraisTransfert + $montantCommission;
+
+        if ($client['solde'] < $totalADeduire) {
+            return redirect()->to('/transfert')->with('error', 'Solde insuffisant.');
+        }
+
+        $this->db = \Config\Database::connect();
+        $this->db->transStart();
+
+        // Debiter l'expediteur uniquement (pas de client destinataire chez nous)
+        $clientModel->update($clientId, ['solde' => $client['solde'] - $totalADeduire]);
+
+        $operationModel = new \App\Models\OperationModel();
+        $operationModel->insert([
+            'id_client'          => $clientId,
+            'destinataire_id'    => null,
+            'id_type_operation'  => $idTypeTransfert,
+            'montant'            => $montant,
+            'frais'              => $fraisTransfert + $montantCommission,
+            'frais_retrait'      => null,
+            'id_autre_operateur' => $autreOperateur['id'],
+            'date_operation'     => date('Y-m-d H:i:s'),
+        ]);
+
+        $this->db->transComplete();
+
+        $messageMontant = $montant;
     }
-
-    $this->db = \Config\Database::connect();
-    $this->db->transStart();
-
-    // 1. Debiter l'expediteur (montant + frais)
-    $clientModel->update($clientId, [
-        'solde' => $client['solde'] - $totalADeduire,
-    ]);
-
-    // 2. Crediter le destinataire (montant net, sans frais)
-    $clientModel->update($destinataire['id'], [
-        'solde' => $destinataire['solde'] + $montant,
-    ]);
-
-    // 3. Enregistrer l'operation dans l'historique
-    $operationModel = new \App\Models\OperationModel();
-    $operationModel->insert([
-        'id_client'         => $clientId,
-        'destinataire_id'   => $destinataire['id'],
-        'id_type_operation' => $idTypeTransfert,
-        'montant'           => $montant,
-        'frais'             => $frais,
-        'date_operation'    => date('Y-m-d H:i:s'),
-    ]);
-
-    $this->db->transComplete();
 
     if ($this->db->transStatus() === false) {
         return redirect()->to('/transfert')->with('error', 'Une erreur est survenue, réessaie.');
     }
 
     return redirect()->to('/dashboard')->with('success',
-        'Transfert de ' . number_format($montant, 0, ',', ' ') . ' Ar vers ' . esc($numeroDestinataire) . ' effectué (frais : ' . number_format($frais, 0, ',', ' ') . ' Ar).');
+        'Transfert de ' . number_format($messageMontant, 0, ',', ' ') . ' Ar effectué.');
+}
+
+
+        public function transfertMultiple()
+{
+    $clientId = session()->get('client_id');
+    if (!$clientId) {
+        return redirect()->to('/login');
+    }
+
+    $clientModel = new ClientModel();
+    $client = $clientModel->find($clientId);
+
+    return view('client/transfert_multiple', ['client' => $client]);
+}
+
+public function transfertMultipleValider()
+{
+    $clientId = session()->get('client_id');
+    if (!$clientId) {
+        return redirect()->to('/login');
+    }
+
+    $montantTotal = (float) $this->request->getPost('montant_total');
+    $numerosRaw = $this->request->getPost('numeros');
+    $inclureFraisRetrait = (bool) $this->request->getPost('inclure_frais_retrait');
+
+    if ($montantTotal <= 0) {
+        return redirect()->to('/transfert/multiple')->with('error', 'Montant invalide.');
+    }
+
+    $numeros = array_filter(array_map('trim', explode("\n", $numerosRaw)));
+    $numeros = array_values(array_unique($numeros));
+
+    $nbDestinataires = count($numeros);
+
+    if ($nbDestinataires === 0) {
+        return redirect()->to('/transfert/multiple')->with('error', 'Aucun numéro fourni.');
+    }
+
+    $clientModel = new ClientModel();
+    $client = $clientModel->find($clientId);
+
+    if (!$client) {
+        session()->destroy();
+        return redirect()->to('/login');
+    }
+
+    // Partage EQUITABLE : chaque destinataire recoit exactement la meme part
+    $montantParPersonne = $montantTotal / $nbDestinataires;
+
+    $operateurModel = new OperateurModel();
+    $idTypeTransfert = $this->getIdTypeOperation('transfert');
+    $idTypeRetrait = $this->getIdTypeOperation('retrait');
+
+    $destinataires = [];
+    $fraisTransfertTotal = 0;
+    $fraisRetraitTotal = 0;
+
+    foreach ($numeros as $numero) {
+
+        if ($numero === $client['numero']) {
+            return redirect()->to('/transfert/multiple')->with('error',
+                'Vous ne pouvez pas vous inclure vous-même dans la liste.');
+        }
+
+        // Meme operateur uniquement (regle v2)
+        $prefixe = substr($numero, 0, 3);
+        $operateurDest = $operateurModel->where('code', $prefixe)->first();
+
+        if (!$operateurDest || $operateurDest['id'] !== $client['id_operateur']) {
+            return redirect()->to('/transfert/multiple')->with('error',
+                'Le numéro ' . esc($numero) . ' n\'appartient pas au même opérateur. Envoi multiple limité au même opérateur.');
+        }
+
+        $destinataire = $clientModel->where('numero', $numero)->first();
+
+        if (!$destinataire) {
+            return redirect()->to('/transfert/multiple')->with('error',
+                'Le numéro ' . esc($numero) . ' n\'existe pas.');
+        }
+
+        // Frais de transfert sur la part individuelle (chaque part suit sa propre tranche)
+        $fraisTransfert = $this->calculerFrais($montantParPersonne, $client['id_operateur'], $idTypeTransfert);
+
+        // Frais de retrait seulement si le checkbox global est coche
+        $fraisRetrait = 0;
+        if ($inclureFraisRetrait) {
+            $fraisRetrait = $this->calculerFrais($montantParPersonne, $destinataire['id_operateur'], $idTypeRetrait);
+        }
+
+        $destinataires[] = [
+            'client'         => $destinataire,
+            'frais_transfert'=> $fraisTransfert,
+            'frais_retrait'  => $fraisRetrait,
+        ];
+
+        $fraisTransfertTotal += $fraisTransfert;
+        $fraisRetraitTotal += $fraisRetrait;
+    }
+
+    // L'expediteur paie : le montant total + tous les frais de transfert + tous les frais de retrait anticipes
+    $totalADeduire = $montantTotal + $fraisTransfertTotal + $fraisRetraitTotal;
+
+    if ($client['solde'] < $totalADeduire) {
+        return redirect()->to('/transfert/multiple')->with('error',
+            'Solde insuffisant pour cet envoi (total requis : ' .
+            number_format($totalADeduire, 0, ',', ' ') . ' Ar).');
+    }
+
+    $this->db = \Config\Database::connect();
+    $this->db->transStart();
+
+    // Debiter l'expediteur une seule fois pour le total
+    $clientModel->update($clientId, [
+        'solde' => $client['solde'] - $totalADeduire,
+    ]);
+
+    $operationModel = new \App\Models\OperationModel();
+
+    foreach ($destinataires as $item) {
+        $dest = $item['client'];
+        $fraisTransfert = $item['frais_transfert'];
+        $fraisRetrait = $item['frais_retrait'];
+
+        // Chaque destinataire recoit sa part egale + frais de retrait anticipes si option cochee
+        $montantCredite = $montantParPersonne + $fraisRetrait;
+
+        $clientModel->update($dest['id'], [
+            'solde' => $dest['solde'] + $montantCredite,
+        ]);
+
+        $operationModel->insert([
+            'id_client'         => $clientId,
+            'destinataire_id'   => $dest['id'],
+            'id_type_operation' => $idTypeTransfert,
+            'montant'           => $montantParPersonne,
+            'frais'             => $fraisTransfert + $fraisRetrait,
+            'date_operation'    => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    $this->db->transComplete();
+
+    if ($this->db->transStatus() === false) {
+        return redirect()->to('/transfert/multiple')->with('error', 'Une erreur est survenue, réessaie.');
+    }
+
+    return redirect()->to('/dashboard')->with('success',
+        'Envoi de ' . number_format($montantTotal, 0, ',', ' ') . ' Ar réparti équitablement entre ' . $nbDestinataires . ' destinataires effectué.');
 }
 
     public function logout()

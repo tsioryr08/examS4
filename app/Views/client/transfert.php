@@ -21,17 +21,30 @@
             <form action="<?= site_url('transfert/valider') ?>" method="post">
                 <?= csrf_field() ?>
                 <div class="mb-3">
-                    <label class="form-label" for="numero_destinataire">Numéro du destinataire</label>
-                    <input id="numero_destinataire" type="text" name="numero_destinataire" class="form-control"
+                    <label class="form-label">Numéro du destinataire</label>
+                    <input type="text" name="numero_destinataire" class="form-control"
                            placeholder="Ex: 0339876543" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" for="montant">Montant à transférer (Ar)</label>
-                    <input id="montant" type="number" name="montant" class="form-control" min="1" required>
+                    <label class="form-label">Montant à transférer (Ar)</label>
+                    <input type="number" name="montant" class="form-control" min="1" required>
                 </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" name="inclure_frais_retrait" value="1" class="form-check-input" id="inclureFraisRetrait">
+                    <label class="form-check-label" for="inclureFraisRetrait">
+                        Inclure les frais de retrait du destinataire
+                    </label>
+                </div>
+
                 <button type="submit" class="btn btn-info w-100 text-white">Valider le transfert</button>
                 <a href="<?= site_url('dashboard') ?>" class="btn btn-link w-100 mt-2">Annuler</a>
             </form>
+
+            <hr>
+            <a href="<?= site_url('transfert/multiple') ?>" class="btn btn-info w-100 btn-sm">
+                Envoi multiple vers plusieurs numéros
+            </a>
         </div>
     </div>
 </div>

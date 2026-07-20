@@ -13,7 +13,7 @@ class InitialSeeder extends Seeder
         // ============================================
         $this->db->table('operateur')->insertBatch([
             ['libelle' => 'Airtel',  'code' => '033'],
-            ['libelle' => 'Orange', 'code' => '037'],
+            ['libelle' => 'Airtel', 'code' => '037'],
         ]);
 
         // ============================================
@@ -56,7 +56,7 @@ class InitialSeeder extends Seeder
         ]);
 
         // ============================================
-        // Bareme de frais - Orange (id_operateur = 2)
+        // Bareme de frais - Airtel (id_operateur = 2)
         // ============================================
 
         // Retrait (id_type_operation = 2)
@@ -83,6 +83,33 @@ class InitialSeeder extends Seeder
             ['id_operateur' => 2, 'id_type_operation' => 3, 'montant_min' => 100001, 'montant_max' => 250000,  'frais' => 2100],
             ['id_operateur' => 2, 'id_type_operation' => 3, 'montant_min' => 250001, 'montant_max' => 500000,  'frais' => 3600],
             ['id_operateur' => 2, 'id_type_operation' => 3, 'montant_min' => 500001, 'montant_max' => 1000000, 'frais' => 5200],
+        ]);
+
+        // ============================================
+        // Autres operateurs (pour les transferts)
+        // ============================================
+        $this->db->table('autre_operateur')->insertBatch([
+            ['libelle' => 'MTN',      'code' => '032'],
+            ['libelle' => 'Digicel',  'code' => '031'],
+            ['libelle' => 'Vodacom',  'code' => '034'],
+        ]);
+
+        // ============================================
+        // Commissions pour transferts vers autres operateurs
+        // ============================================
+        // Transfert vers MTN (id_autre_operateur = 1)
+        $this->db->table('commission')->insertBatch([
+            ['id_autre_operateur' => 1, 'id_type_operation' => 3, 'pourcent_commit' => 5],   // 5% sur transfert
+        ]);
+
+        // Transfert vers Digicel (id_autre_operateur = 2)
+        $this->db->table('commission')->insertBatch([
+            ['id_autre_operateur' => 2, 'id_type_operation' => 3, 'pourcent_commit' => 7],   // 7% sur transfert
+        ]);
+
+        // Transfert vers Vodacom (id_autre_operateur = 3)
+        $this->db->table('commission')->insertBatch([
+            ['id_autre_operateur' => 3, 'id_type_operation' => 3, 'pourcent_commit' => 6],   // 6% sur transfert
         ]);
 
         // ============================================
