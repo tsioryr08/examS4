@@ -70,7 +70,7 @@
   - [ok] Vérifier que chaque numéro destinataire existe
   - [ok] Enregistrer une opération par destinataire dans l'historique
 
-## ALEA
+## ALEA1
 
 - [ok] fonction pour Rajouter un pourcent_promo pour le frais de transfert de meme operateur seulement 
   - [ok] prendre la meme fonction transfertValider() mais rajouter la promo avec le frais de transfert
@@ -78,3 +78,7 @@
 - [] pages touchees par la modification base 
   -routes [ok]
   -model[ok]
+
+## ALEA2
+[]Ajout de colonne pourcent_epargne dans la table Client
+[]modification CLientmodel

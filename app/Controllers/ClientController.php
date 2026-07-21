@@ -301,6 +301,7 @@ private function getIdTypeOperation(string $nom): int
     $clientModel = new ClientModel();
     $client = $clientModel->find($clientId);
 
+
     return view('client/transfert', ['client' => $client]);
 }
 
@@ -369,8 +370,11 @@ public function transfertValider()
         $clientModel->update($clientId, ['solde' => $client['solde'] - $totalADeduire]);
 
         // Crediter destinataire (montant + frais retrait anticipes si option cochee)
+        $repartition = $this->repart_epargne($montant, $destinataire);
+
         $clientDestModel->update($destinataire['id'], [
-            'solde' => $destinataire['solde'] + $montant + $fraisRetrait,
+            'solde' => $destinataire['solde'] + $repartition['solde'] + $fraisRetrait,
+            'epargne' => $destinataire['epargne'] + $repartition['epargne'],
         ]);
 
         $operationModel = new \App\Models\OperationModel();
@@ -469,6 +473,10 @@ public function transfertValider()
 
     return view('client/transfert_multiple', ['client' => $client]);
 }
+
+
+
+
 public function transfertMultipleValider()
 {
     $clientId = session()->get('client_id');
@@ -585,11 +593,12 @@ public function transfertMultipleValider()
         $fraisRetrait = $item['frais_retrait'];
 
         // Chaque destinataire recoit sa part egale + frais de retrait anticipes si option cochee
-        $montantCredite = $montantParPersonne + $fraisRetrait;
+            $repartition = $this->repart_epargne($montantParPersonne, $dest);
 
-        $clientModel->update($dest['id'], [
-            'solde' => $dest['solde'] + $montantCredite,
-        ]);
+            $clientModel->update($dest['id'],[
+                'solde' => $dest['solde']+ $repartition['solde'] + $fraisRetrait,
+                'epargne'=> $dest['epargne'] + $repartition['epargne'],
+            ]);
 
         $operationModel->insert([
             'id_client'         => $clientId,
@@ -614,6 +623,19 @@ public function transfertMultipleValider()
     return redirect()->to('/dashboard')->with('success',
         'Envoi de ' . number_format($montantReellementDistribue, 0, ',', ' ') . ' Ar réparti équitablement entre ' . $nbDestinataires . ' destinataires effectué.' . $messageReste);
 }
+
+//epargne
+    private function repart_epargne(float $montant, array $client):array{
+        $pourcent_epargne = (int) ($client['pourcent_epargne']??0);
+        $montantEpargne = $montant * ($pourcent_epargne /100);
+        $montantSolde = $montant - $montantEpargne;
+
+        return[
+            'solde' => $montantSolde,
+            'epargne' => $montantEpargne,
+        ];
+    }
+
 
 //promo
     public function promo_transfert(){

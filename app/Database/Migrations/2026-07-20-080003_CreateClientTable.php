@@ -40,6 +40,16 @@ class CreateClientTable extends Migration
                 'constraint' => 11,
                 'unsigned' => true,
             ],
+            'pourcent_epargne' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+                'null' => true,
+            ],
+            'epargne' => [
+                'type' => 'DECIMAL',
+                'constraint' => '10,2',
+                'default' => 0,
+            ],
         ]);
 
         $this->forge->addKey('id', true);
