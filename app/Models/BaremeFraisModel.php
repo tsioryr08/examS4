@@ -61,36 +61,36 @@ class BaremeFraisModel extends Model
     }
 
     // Regroupe les barèmes par opérateur puis par type d'opération
-    public function getBaremesGroupes(?int $idOperateur = null): array
-    {
-        $lignes = $this->select('bareme_frais.*, operateur.id as op_id, operateur.libelle as operateur_libelle, operateur.code as operateur_code, type_operation.nom as type_nom')
-            ->join('operateur', 'operateur.id = bareme_frais.id_operateur')
-            ->join('type_operation', 'type_operation.id = bareme_frais.id_type_operation')
-            ->orderBy('operateur.libelle')
-            ->orderBy('type_operation.nom')
-            ->orderBy('bareme_frais.montant_min');
+public function getBaremesGroupes(?int $idOperateur = null): array
+{
+    $lignes = $this->select('bareme_frais.*, operateur.libelle as operateur_libelle, type_operation.nom as type_nom')
+        ->join('operateur', 'operateur.id = bareme_frais.id_operateur')
+        ->join('type_operation', 'type_operation.id = bareme_frais.id_type_operation')
+        ->orderBy('operateur.libelle')
+        ->orderBy('type_operation.nom')
+        ->orderBy('bareme_frais.montant_min');
 
-        if ($idOperateur) {
-            $lignes->where('bareme_frais.id_operateur', $idOperateur);
-        }
-
-        $lignes = $lignes->findAll();
-
-        $groupes = [];
-        foreach ($lignes as $ligne) {
-            $opId = $ligne['op_id'];
-
-            if (! isset($groupes[$opId])) {
-                $groupes[$opId] = [
-                    'libelle' => $ligne['operateur_libelle'],
-                    'code'    => $ligne['operateur_code'],
-                    'types'   => [],
-                ];
-            }
-
-            $groupes[$opId]['types'][$ligne['type_nom']][] = $ligne;
-        }
-
-        return $groupes;
+    if ($idOperateur) {
+        $lignes->where('bareme_frais.id_operateur', $idOperateur);
     }
+
+    $lignes = $lignes->findAll();
+
+    $groupes = [];
+    foreach ($lignes as $ligne) {
+        // Cle de regroupement = libelle, pas id_operateur, pour fusionner 033/037
+        $cle = $ligne['operateur_libelle'];
+
+        if (! isset($groupes[$cle])) {
+            $groupes[$cle] = [
+                'libelle' => $ligne['operateur_libelle'],
+                'types'   => [],
+            ];
+        }
+
+        $groupes[$cle]['types'][$ligne['type_nom']][] = $ligne;
+    }
+
+    return $groupes;
+}
 }

@@ -37,6 +37,7 @@ class CreateBaremeFraisTable extends Migration
                 'type' => 'DECIMAL',
                 'constraint' => '10,2',
             ],
+            
         ]);
 
         $this->forge->addKey('id', true);

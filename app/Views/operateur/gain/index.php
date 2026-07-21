@@ -29,8 +29,8 @@
 <!-- GAINS PROPRES (Retrait + Transfert) -->
 <!-- ====================================== -->
 <div class="card mt-4">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">Gains propres de l'opérateur</h5>
+    <div class="card-header" style="background-color: rgba(95, 115, 83, 0.08); border-bottom: 2px solid var(--mm-olive-600);">
+        <h5 class="mb-0" style="color: var(--mm-olive-900);">Gains propres de l'opérateur</h5>
     </div>
     <div class="card-body">
         <table class="table table-bordered mb-0">
@@ -64,8 +64,8 @@
 <!-- COMMISSIONS DES TRANSFERTS INTER-OP -->
 <!-- ====================================== -->
 <div class="card mt-4">
-    <div class="card-header bg-success text-white">
-        <h5 class="mb-0">Commissions des transferts vers autres opérateurs</h5>
+    <div class="card-header" style="background-color: rgba(95, 115, 83, 0.08); border-bottom: 2px solid var(--mm-olive-600);">
+        <h5 class="mb-0" style="color: var(--mm-olive-900);">Commissions des transferts vers autres opérateurs</h5>
     </div>
     <div class="card-body">
         <table class="table table-bordered mb-0">
@@ -103,8 +103,8 @@
 <!-- MONTANTS À ENVOYER PAR OPÉRATEUR -->
 <!-- ====================================== -->
 <div class="card mt-4">
-    <div class="card-header bg-warning text-dark">
-        <h5 class="mb-0">Montants à envoyer à chaque opérateur</h5>
+    <div class="card-header" style="background-color: rgba(95, 115, 83, 0.08); border-bottom: 2px solid var(--mm-olive-600);">
+        <h5 class="mb-0" style="color: var(--mm-olive-900);">Montants à envoyer à chaque opérateur</h5>
     </div>
     <div class="card-body">
         <table class="table table-bordered mb-0">
@@ -136,8 +136,8 @@
 <!-- TOTAL GLOBAL -->
 <!-- ====================================== -->
 <div class="card mt-4 border-dark">
-    <div class="card-header bg-dark text-white">
-        <h5 class="mb-0">Récapitulatif total</h5>
+    <div class="card-header" style="background-color: rgba(95, 115, 83, 0.08); border-bottom: 2px solid var(--mm-olive-600);">
+        <h5 class="mb-0" style="color: var(--mm-olive-900);">Récapitulatif total</h5>
     </div>
     <div class="card-body text-center">
         <h4>Total général : <strong><?= number_format($total, 0, ',', ' ') ?> Ar</strong></h4>

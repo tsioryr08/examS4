@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Mon compte - Mobile Money</title>
+    <title>Mon compte - Pay-EO</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link href="<?= base_url('assets/css/mobile-money.css') ?>" rel="stylesheet">
 </head>
@@ -10,14 +10,14 @@
 <div class="container py-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4>Bonjour, <?= esc($client['numero']) ?></h4>
+        <h4>Bonjour, <?= esc($nomAffiche) ?></h4>
         <a href="<?= site_url('logout') ?>" class="btn btn-outline-secondary btn-sm">Déconnexion</a>
     </div>
 
     <?php if (!empty($notifications)): ?>
     <?php foreach ($notifications as $notif): ?>
         <div class="mm-notification d-flex align-items-center gap-2 px-3 py-2 mb-2 rounded" style="font-size: 0.85rem;">
-            <span>💸</span>
+            <span></span>
             <span>
                 Vous avez reçu <strong><?= number_format($notif['montant'], 0, ',', ' ') ?> Ar</strong>
                 de <strong><?= esc($notif['numero']) ?></strong>

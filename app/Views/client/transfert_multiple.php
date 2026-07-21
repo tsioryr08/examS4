@@ -2,12 +2,13 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Envoi multiple - Mobile Money</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Envoi multiple - Pay-EO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="<?= base_url('assets/css/mobile-money.css') ?>" rel="stylesheet">
 </head>
-<body class="bg-light">
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="card shadow-sm" style="width: 400px;">
+<body class="mm-page">
+<div class="mm-shell">
+    <div class="card mm-card mm-fade-in" style="width: 400px;">
         <div class="card-body">
             <h4 class="card-title text-center mb-4">Envoi multiple</h4>
             <p class="text-muted text-center">Solde disponible : <?= number_format($client['solde'], 0, ',', ' ') ?> Ar</p>
@@ -25,9 +26,9 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Numéros destinataires (un par ligne)</label>
+                    <label class="form-label">Numéros destinataires</label>
                     <textarea name="numeros" class="form-control" rows="5"
-                              placeholder="0339876543&#10;0331112233&#10;0334445566" required></textarea>
+                              placeholder="Veuillez inserer les numéros ligne par ligne" required></textarea>
                     <small class="text-muted">Le montant sera divisé également entre chaque numéro.</small>
                 </div>
 

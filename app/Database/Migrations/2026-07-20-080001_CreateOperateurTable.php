@@ -23,6 +23,10 @@ class CreateOperateurTable extends Migration
                 'type' => 'VARCHAR',
                 'constraint' => 3,
             ],
+            'pourcent_promo' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+            ],
         ]);
 
         $this->forge->addKey('id', true);

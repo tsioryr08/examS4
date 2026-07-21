@@ -26,8 +26,8 @@
             <td><?= esc($op['libelle']) ?></td>
             <td><?= esc($op['code']) ?></td>
             <td>
-                <a href="/operateurs/edit/<?= $op['id'] ?>" class="btn btn-sm btn-warning">Modifier</a>
-                <a href="/operateurs/delete/<?= $op['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cet opérateur ?')">Supprimer</a>
+                <a href="/operateurs/edit/<?= $op['id'] ?>" class="btn btn-sm btn-outline-primary">Modifier</a>
+                <a href="/operateurs/delete/<?= $op['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer cet opérateur ?')">Supprimer</a>
             </td>
         </tr>
         <?php endforeach; ?>
