@@ -327,7 +327,7 @@ public function transfertValider()
         session()->destroy();
         return redirect()->to('/login');
     }
-//envoi du vola vers toi meme
+
     if ($numeroDestinataire === $client['numero']) {
         return redirect()->to('/transfert')->with('error', 'Impossible de transférer vers votre propre numéro.');
     }
@@ -339,10 +339,24 @@ public function transfertValider()
     $operateurModel = new OperateurModel();
     $operateurDestinataire = $operateurModel->where('code', $prefixeDestinataire)->first();
 
+    // Frais de transfert de base (selon le bareme)
     $fraisTransfert = $this->calculerFrais($montant, $client['id_operateur'], $idTypeTransfert);
 
+    // Appliquer la promo UNIQUEMENT si meme operateur (regle : promo reservee au meme operateur)
     if ($operateurDestinataire) {
-        //si meme operateur que l'envoyeur
+        $operateurExpediteur = $operateurModel->find($client['id_operateur']);
+        $pourcentPromo = (int) ($operateurExpediteur['pourcent_promo'] ?? 0);
+
+        if ($pourcentPromo > 0) {
+            $reduction = $fraisTransfert * ($pourcentPromo / 100);
+            $fraisTransfert = $fraisTransfert - $reduction;
+        }
+    }
+
+    if ($operateurDestinataire) {
+        // ============================================
+        // CAS 1 : meme operateur (destinataire chez nous)
+        // ============================================
         $clientDestModel = new ClientModel();
         $destinataire = $clientDestModel->where('numero', $numeroDestinataire)->first();
 
@@ -350,7 +364,6 @@ public function transfertValider()
             return redirect()->to('/transfert')->with('error', 'Ce numéro de destinataire n\'existe pas.');
         }
 
-        //enlever juste le if sion veut que ca soit autom sans checkbox
         $fraisRetrait = 0;
         if ($inclureFraisRetrait) {
             $idTypeRetrait = $this->getIdTypeOperation('retrait');
@@ -366,15 +379,12 @@ public function transfertValider()
         $this->db = \Config\Database::connect();
         $this->db->transStart();
 
-        // Debiter expediteur (montant + frais transfert + frais retrait anticipes)
+        // Debiter expediteur (montant + frais transfert deja reduit par la promo + frais retrait anticipes)
         $clientModel->update($clientId, ['solde' => $client['solde'] - $totalADeduire]);
 
         // Crediter destinataire (montant + frais retrait anticipes si option cochee)
-        $repartition = $this->repart_epargne($montant, $destinataire);
-
         $clientDestModel->update($destinataire['id'], [
-            'solde' => $destinataire['solde'] + $repartition['solde'] + $fraisRetrait,
-            'epargne' => $destinataire['epargne'] + $repartition['epargne'],
+            'solde' => $destinataire['solde'] + $montant + $fraisRetrait,
         ]);
 
         $operationModel = new \App\Models\OperationModel();
@@ -394,7 +404,9 @@ public function transfertValider()
         $messageMontant = $montant;
 
     } else {
-        //si autre_operateur
+        // ============================================
+        // CAS 2 : autre operateur (destinataire externe)
+        // ============================================
         $autreOperateurModel = new \App\Models\AutreOperateurModel();
         $autreOperateur = $autreOperateurModel->where('code', $prefixeDestinataire)->first();
 
@@ -402,18 +414,13 @@ public function transfertValider()
             return redirect()->to('/transfert')->with('error', 'Numéro de destinataire non reconnu.');
         }
 
-        // Bloquer si le checkbox "frais de retrait" est coche : impossible pour un autre operateur
         if ($inclureFraisRetrait) {
             return redirect()->to('/transfert')->with('error',
                 'Impossible d\'inclure les frais de retrait pour un transfert vers un autre opérateur (' . esc($autreOperateur['libelle']) . ').');
         }
 
-        // Recuperer le taux de commission pour cet autre operateur + ce type d'operation
         $commissionModel = new \App\Models\CommissionModel();
-        $commission = $commissionModel
-            ->where('id_autre_operateur', $autreOperateur['id'])
-            ->where('id_type_operation', $idTypeTransfert)
-            ->first();
+        $commission = $commissionModel->getCommissionByOperateurAndType($autreOperateur['id'], $idTypeTransfert);
 
         if (!$commission) {
             return redirect()->to('/transfert')->with('error',
@@ -423,6 +430,7 @@ public function transfertValider()
         $montantCommission = $montant * ($commission['pourcent_commit'] / 100);
 
         // Pas de frais de retrait pour un autre operateur (regle v2)
+        // Note : $fraisTransfert ici n'a PAS ete reduit par la promo (reservee au meme operateur)
         $totalADeduire = $montant + $fraisTransfert + $montantCommission;
 
         if ($client['solde'] < $totalADeduire) {
@@ -432,7 +440,6 @@ public function transfertValider()
         $this->db = \Config\Database::connect();
         $this->db->transStart();
 
-        // Debiter l'expediteur uniquement (pas de client destinataire chez nous)
         $clientModel->update($clientId, ['solde' => $client['solde'] - $totalADeduire]);
 
         $operationModel = new \App\Models\OperationModel();
@@ -460,7 +467,6 @@ public function transfertValider()
         'Transfert de ' . number_format($messageMontant, 0, ',', ' ') . ' Ar effectué.');
 }
 
-
         public function transfertMultiple()
 {
     $clientId = session()->get('client_id');
@@ -473,8 +479,6 @@ public function transfertValider()
 
     return view('client/transfert_multiple', ['client' => $client]);
 }
-
-
 
 
 public function transfertMultipleValider()
@@ -509,18 +513,18 @@ public function transfertMultipleValider()
         return redirect()->to('/login');
     }
 
-    //Partage EQUITABLE avec arrondi vers le bas
+    // Partage EQUITABLE avec arrondi vers le bas (pas de decimales en Ariary)
     $montantParPersonne = floor($montantTotal / $nbDestinataires);
-
-    // Ce qui sera reellement distribue (peut etre legerement inferieur au montant tape)car on a arrondi
     $montantReellementDistribue = $montantParPersonne * $nbDestinataires;
-
-    // Le reste ne sera jamais debite, il reste chez l'expediteur
     $reste = $montantTotal - $montantReellementDistribue;
 
     $operateurModel = new OperateurModel();
     $idTypeTransfert = $this->getIdTypeOperation('transfert');
     $idTypeRetrait = $this->getIdTypeOperation('retrait');
+
+    // Recuperer le pourcentage de promo UNE SEULE FOIS (meme operateur pour toute la liste)
+    $operateurExpediteur = $operateurModel->find($client['id_operateur']);
+    $pourcentPromo = (int) ($operateurExpediteur['pourcent_promo'] ?? 0);
 
     $destinataires = [];
     $fraisTransfertTotal = 0;
@@ -537,7 +541,10 @@ public function transfertMultipleValider()
         $prefixe = substr($numero, 0, 3);
         $operateurDest = $operateurModel->where('code', $prefixe)->first();
 
-        if (!$operateurDest || $operateurDest['id'] !== $client['id_operateur']) {
+        //par libelle et non par id
+        $operateurExpediteurInfo = $operateurModel->find($client['id_operateur']);
+
+        if (!$operateurDest || $operateurDest['libelle'] !== $operateurExpediteurInfo['libelle']) {
             return redirect()->to('/transfert/multiple')->with('error',
                 'Le numéro ' . esc($numero) . ' n\'appartient pas au même opérateur. Envoi multiple limité au même opérateur.');
         }
@@ -551,6 +558,12 @@ public function transfertMultipleValider()
 
         // Frais de transfert sur la part individuelle (chaque part suit sa propre tranche)
         $fraisTransfert = $this->calculerFrais($montantParPersonne, $client['id_operateur'], $idTypeTransfert);
+
+        // Application de la promo (envoi multiple = toujours meme operateur, donc toujours applicable)
+        if ($pourcentPromo > 0) {
+            $reduction = $fraisTransfert * ($pourcentPromo / 100);
+            $fraisTransfert = $fraisTransfert - $reduction;
+        }
 
         // Frais de retrait seulement si le checkbox global est coche
         $fraisRetrait = 0;
@@ -568,7 +581,7 @@ public function transfertMultipleValider()
         $fraisRetraitTotal += $fraisRetrait;
     }
 
-    // L'expediteur paie : le montant REELLEMENT distribue (pas le montant tape) + tous les frais
+    // L'expediteur paie : le montant REELLEMENT distribue + tous les frais (deja reduits par la promo)
     $totalADeduire = $montantReellementDistribue + $fraisTransfertTotal + $fraisRetraitTotal;
 
     if ($client['solde'] < $totalADeduire) {
@@ -580,7 +593,6 @@ public function transfertMultipleValider()
     $this->db = \Config\Database::connect();
     $this->db->transStart();
 
-    // Debiter l'expediteur une seule fois pour le total reellement distribue
     $clientModel->update($clientId, [
         'solde' => $client['solde'] - $totalADeduire,
     ]);
@@ -592,13 +604,11 @@ public function transfertMultipleValider()
         $fraisTransfert = $item['frais_transfert'];
         $fraisRetrait = $item['frais_retrait'];
 
-        // Chaque destinataire recoit sa part egale + frais de retrait anticipes si option cochee
-            $repartition = $this->repart_epargne($montantParPersonne, $dest);
+        $montantCredite = $montantParPersonne + $fraisRetrait;
 
-            $clientModel->update($dest['id'],[
-                'solde' => $dest['solde']+ $repartition['solde'] + $fraisRetrait,
-                'epargne'=> $dest['epargne'] + $repartition['epargne'],
-            ]);
+        $clientModel->update($dest['id'], [
+            'solde' => $dest['solde'] + $montantCredite,
+        ]);
 
         $operationModel->insert([
             'id_client'         => $clientId,
@@ -634,115 +644,6 @@ public function transfertMultipleValider()
             'solde' => $montantSolde,
             'epargne' => $montantEpargne,
         ];
-    }
-
-
-//promo
-    public function promo_transfert(){
-         $clientId = session()->get('client_id');
-    if (!$clientId) {
-        return redirect()->to('/login');
-    }
-
-    $numeroDestinataire = trim($this->request->getPost('numero_destinataire'));
-    $montant = (float) $this->request->getPost('montant');
-    $inclureFraisRetrait = (bool) $this->request->getPost('inclure_frais_retrait');
-
-    if ($montant <= 0) {
-        return redirect()->to('/transfert')->with('error', 'Montant invalide.');
-    }
-
-    $clientModel = new ClientModel();
-    $client = $clientModel->find($clientId);
-
-    if (!$client) {
-        session()->destroy();
-        return redirect()->to('/login');
-    }
-     if ($numeroDestinataire === $client['numero']) {
-        return redirect()->to('/transfert')->with('error', 'Impossible de transférer vers votre propre numéro.');
-    }
-
-    $prefixeDestinataire = substr($numeroDestinataire, 0, 3);
-    $idTypeTransfert = $this->getIdTypeOperation('transfert');
-
-    // Determiner si le destinataire est chez NOTRE operateur
-    $operateurModel = new OperateurModel();
-    $operateurDestinataire = $operateurModel->where('code', $prefixeDestinataire)->first();
-    $promotion =$operateurModel->get('pourcent_promo');
-    $fraisTransfert = $this->calculerFrais($montant, $client['id_operateur'], $idTypeTransfert);
-    // $Promo= $montant * ($commission['pourcent_promo'] / 100);
-    // $fraisTransfertAvecPromo = $fraisTransfert + $Promo;
-    $fraiAvecPromo= ($fraisTransfert*$promotion)/100;
-
-    if ($operateurDestinataire) {
-        //si meme operateur que l'envoyeur
-        $clientDestModel = new ClientModel();
-        $destinataire = $clientDestModel->where('numero', $numeroDestinataire)->first();
-
-        if (!$destinataire) {
-            return redirect()->to('/transfert')->with('error', 'Ce numéro de destinataire n\'existe pas.');
-        }
-
-        //enlever juste le if sion veut que ca soit autom sans checkbox
-        $fraisRetrait = 0;
-        if ($inclureFraisRetrait) {
-            $idTypeRetrait = $this->getIdTypeOperation('retrait');
-            $fraisRetrait = $this->calculerFrais($montant, $destinataire['id_operateur'], $idTypeRetrait);
-
-
-        }
-//prendre le frais deja avec la promo
-        $totalADeduire = $montant + $fraisAvecPromo + $fraisRetrait;
-
-        if ($client['solde'] < $totalADeduire) {
-            return redirect()->to('/transfert')->with('error', 'Solde insuffisant.');
-        }
-         $this->db = \Config\Database::connect();
-        $this->db->transStart();
-
-        // Debiter expediteur (montant + frais transfert + frais retrait anticipes)
-        $clientModel->update($clientId, ['solde' => $client['solde'] - $totalADeduire]);
-
-        // Crediter destinataire (montant + frais retrait anticipes si option cochee)
-        $clientDestModel->update($destinataire['id'], [
-            'solde' => $destinataire['solde'] + $montant + $fraisRetrait,
-        ]);
-
-        $operationModel = new \App\Models\OperationModel();
-        $operationModel->insert([
-            'id_client'          => $clientId,
-            'destinataire_id'    => $destinataire['id'],
-            'id_type_operation'  => $idTypeTransfert,
-            'montant'            => $montant,
-            'frais'              => $fraisTransfertAvecPromo,
-            'frais_retrait'      => $fraisRetrait,
-            'id_autre_operateur' => null,
-            'date_operation'     => date('Y-m-d H:i:s'),
-
-        ]);
-
-        $this->db->transComplete();
-
-        $messageMontant = $montant;
-
-    } else {
-        //si autre_operateur
-        $autreOperateurModel = new \App\Models\AutreOperateurModel();
-        $autreOperateur = $autreOperateurModel->where('code', $prefixeDestinataire)->first();
-
-        if ($autreOperateur) {
-            return redirect()->to('/transfert')->with('error', 'Impossible d envoyer de l argent au autres operateurs.');
-        }
-     
-    if ($this->db->transStatus() === false) {
-        return redirect()->to('/transfert')->with('error', 'Une erreur est survenue, réessaie.');
-    }
-
-    return redirect()->to('/dashboard')->with('success',
-        'Transfert de ' . number_format($messageMontant, 0, ',', ' ') . ' Ar effectué.');
-}
-
     }
 
     public function logout()
