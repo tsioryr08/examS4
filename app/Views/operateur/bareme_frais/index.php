@@ -31,7 +31,7 @@
 <?php foreach ($groupes as $groupe): ?>
 <div class="card mb-4">
     <div class="card-header" style="background-color: rgba(95, 115, 83, 0.08); border-bottom: 2px solid var(--mm-olive-600);">
-        <strong style="color: var(--mm-olive-900);"><?= esc($groupe['libelle']) ?></strong> (<?= esc($groupe['code']) ?>)
+<strong><?= esc($groupe['libelle']) ?></strong>
     </div>
     <div class="card-body">
         <div class="row">

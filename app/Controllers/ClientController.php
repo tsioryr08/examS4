@@ -260,12 +260,19 @@ public function retraitValider()
         'Retrait de ' . number_format($montant, 0, ',', ' ') . ' Ar effectué (frais : ' . number_format($frais, 0, ',', ' ') . ' Ar).');
 }
 
-private function calculerFrais(float $montant, int $idOperateur, int $idTypeOperation): float
+private function calculerFrais(float $montant, int $idOperateur, int $idTypeOperation, ?int $idOperateurDestinataire = null): float
 {
+    $operateurModel = new OperateurModel();
+    $operateur = $operateurModel->find($idOperateur);
+
+    $idsMemeOperateur = $operateurModel
+        ->where('libelle', $operateur['libelle'])
+        ->findColumn('id') ?? [$idOperateur];
+
     $baremeModel = new \App\Models\BaremeFraisModel();
 
     $bareme = $baremeModel
-        ->where('id_operateur', $idOperateur)
+        ->whereIn('id_operateur', $idsMemeOperateur)
         ->where('id_type_operation', $idTypeOperation)
         ->where('montant_min <=', $montant)
         ->where('montant_max >=', $montant)
@@ -275,7 +282,25 @@ private function calculerFrais(float $montant, int $idOperateur, int $idTypeOper
         return 0;
     }
 
-    return (float) $bareme['frais'];
+    $frais = (float) $bareme['frais'];
+
+    $promotion = (float) ($operateur['promotion'] ?? 0);
+    if ($promotion > 0) {
+        $frais -= $frais * ($promotion / 100);
+    }
+
+    if ($idOperateurDestinataire !== null && in_array($idOperateurDestinataire, $idsMemeOperateur, true)) {
+        $typeModel = new \App\Models\TypeOperationModel();
+        $type = $typeModel->find($idTypeOperation);
+        if ($type && strtolower($type['nom']) === 'transfert') {
+            $reduction = (float) ($operateur['reduction_meme_operateur'] ?? 0);
+            if ($reduction > 0) {
+                $frais -= $frais * ($reduction / 100);
+            }
+        }
+    }
+
+    return round($frais, 2);
 }
 
 private function getIdTypeOperation(string $nom): int
