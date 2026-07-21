@@ -12,61 +12,24 @@ class ClientController extends BaseController
         return view('client/login');
     }
 
-    // public function verifier()
-    // {
-    //     $numero = trim($this->request->getPost('numero'));
-
-    //     //numero a 10 chiffres 
-    //     if (empty($numero) || !preg_match('/^0\d{9}$/', $numero)) {
-    //         return redirect()->to('/login')->with('error', 'Numéro invalide. Format attendu : 10 chiffres');
-    //     }
-
-    //     //prendre le prefixe pour verifier il est dans quel operateur 
-    //     $prefixe = substr($numero, 0, 3);
-
-    //     $operateurModel = new OperateurModel();
-    //     $operateur = $operateurModel->where('code', $prefixe)->first();
-
-    //     if (!$operateur) {
-    //         return redirect()->to('/login')->with('error', 'Ce préfixe n\'est reconnu par aucun opérateur.');
-    //     }
-
-    //     //Chercher le premier client qui correspond au numero saisi 
-    //     $clientModel = new ClientModel();
-    //     $client = $clientModel->where('numero', $numero)->first();
-
-    //     //si le numero saisi n existe pas, on create avec solde 0 avec l'id qui correspond
-    //     if (!$client) {
-    //         $clientId = $clientModel->insert([
-    //             'numero'       => $numero,
-    //             'solde'        => 0,
-    //             'id_operateur' => $operateur['id'],
-    //         ]);
-
-    //         $client = $clientModel->find($clientId);
-    //     }
-
-    //     //sessioner pour recup les infos du client co
-    //     session()->set('client_id', $client['id']);
-    //     session()->set('client_numero', $client['numero']);
-    //     session()->set('operateur_id', $client['id_operateur']);
-
-    //     return redirect()->to('/dashboard');
-    // }
-
+    private function getNomAffichage(array $client): string
+    {
+    $nomComplet = trim(($client['nom'] ?? '') . ' ' . ($client['prenom'] ?? ''));
+    return $nomComplet !== '' ? $nomComplet : $client['numero'];
+    }
 
         public function verifier()
 {
     $numero = trim($this->request->getPost('numero'));
 
-    // 1. Validation du format
+    //format num malagasy
     if (empty($numero) || !preg_match('/^0\d{9}$/', $numero)) {
         return redirect()->to('/login')->with('error', 'Numéro invalide. Format attendu : 0331234567');
     }
 
     $prefixe = substr($numero, 0, 3);
 
-    // 2. Verifier que le prefixe correspond a NOTRE operateur
+    //Verifier que le prefixe correspond a NOTRE operateur
     $operateurModel = new OperateurModel();
     $operateur = $operateurModel->where('code', $prefixe)->first();
 
@@ -74,11 +37,11 @@ class ClientController extends BaseController
         return redirect()->to('/login')->with('error', 'Ce préfixe n\'est pas pris en charge par notre opérateur.');
     }
 
-    // 3. Chercher le client existant
+    //Chercher le client existant
     $clientModel = new ClientModel();
     $client = $clientModel->where('numero', $numero)->first();
 
-    // 4. Creation automatique si inconnu (solde 0)
+    //creer si inconnu (solde 0)
     if (!$client) {
         $clientId = $clientModel->insert([
             'numero'       => $numero,
@@ -151,6 +114,7 @@ class ClientController extends BaseController
 
         return view('client/dashboard', [
             'client'        => $client,
+            'nomAffiche'    =>$this->getNomAffichage($client),
             'historique'    => $historique,
             'notifications' => $notifications,
         ]);
@@ -201,7 +165,7 @@ class ClientController extends BaseController
             'solde' => $nouveauSolde,
         ]);
 
-        // 2. Enregistrer l'operation dans l'historique
+        //Enregistrer l'operation dans l'historique
         $operationModel = new \App\Models\OperationModel();
         $operationModel->insert([
             'id_client'          => $clientId,
@@ -244,7 +208,7 @@ public function retraitValider()
     $montant = (float) $this->request->getPost('montant');
 
     if ($montant <= 0) {
-        return redirect()->to('/retrait')->with('error', 'Montant invalide.');
+        return redirect()->to('/retrait')->with('error', 'Montant doit etre positif.');
     }
 
     $clientModel = new ClientModel();
@@ -339,6 +303,7 @@ private function getIdTypeOperation(string $nom): int
 
     return view('client/transfert', ['client' => $client]);
 }
+
 public function transfertValider()
 {
     $clientId = session()->get('client_id');
@@ -361,7 +326,7 @@ public function transfertValider()
         session()->destroy();
         return redirect()->to('/login');
     }
-
+//envoi du vola vers toi meme
     if ($numeroDestinataire === $client['numero']) {
         return redirect()->to('/transfert')->with('error', 'Impossible de transférer vers votre propre numéro.');
     }
@@ -376,9 +341,7 @@ public function transfertValider()
     $fraisTransfert = $this->calculerFrais($montant, $client['id_operateur'], $idTypeTransfert);
 
     if ($operateurDestinataire) {
-        // ============================================
-        // CAS 1 : meme operateur (destinataire chez nous)
-        // ============================================
+        //si meme operateur que l'envoyeur
         $clientDestModel = new ClientModel();
         $destinataire = $clientDestModel->where('numero', $numeroDestinataire)->first();
 
@@ -386,6 +349,7 @@ public function transfertValider()
             return redirect()->to('/transfert')->with('error', 'Ce numéro de destinataire n\'existe pas.');
         }
 
+        //enlever juste le if sion veut que ca soit autom sans checkbox
         $fraisRetrait = 0;
         if ($inclureFraisRetrait) {
             $idTypeRetrait = $this->getIdTypeOperation('retrait');
@@ -426,9 +390,7 @@ public function transfertValider()
         $messageMontant = $montant;
 
     } else {
-        // ============================================
-        // CAS 2 : autre operateur (destinataire externe)
-        // ============================================
+        //si autre_operateur
         $autreOperateurModel = new \App\Models\AutreOperateurModel();
         $autreOperateur = $autreOperateurModel->where('code', $prefixeDestinataire)->first();
 
@@ -507,7 +469,6 @@ public function transfertValider()
 
     return view('client/transfert_multiple', ['client' => $client]);
 }
-
 public function transfertMultipleValider()
 {
     $clientId = session()->get('client_id');
@@ -540,8 +501,14 @@ public function transfertMultipleValider()
         return redirect()->to('/login');
     }
 
-    // Partage EQUITABLE : chaque destinataire recoit exactement la meme part
-    $montantParPersonne = $montantTotal / $nbDestinataires;
+    //Partage EQUITABLE avec arrondi vers le bas
+    $montantParPersonne = floor($montantTotal / $nbDestinataires);
+
+    // Ce qui sera reellement distribue (peut etre legerement inferieur au montant tape)car on a arrondi
+    $montantReellementDistribue = $montantParPersonne * $nbDestinataires;
+
+    // Le reste ne sera jamais debite, il reste chez l'expediteur
+    $reste = $montantTotal - $montantReellementDistribue;
 
     $operateurModel = new OperateurModel();
     $idTypeTransfert = $this->getIdTypeOperation('transfert');
@@ -593,8 +560,8 @@ public function transfertMultipleValider()
         $fraisRetraitTotal += $fraisRetrait;
     }
 
-    // L'expediteur paie : le montant total + tous les frais de transfert + tous les frais de retrait anticipes
-    $totalADeduire = $montantTotal + $fraisTransfertTotal + $fraisRetraitTotal;
+    // L'expediteur paie : le montant REELLEMENT distribue (pas le montant tape) + tous les frais
+    $totalADeduire = $montantReellementDistribue + $fraisTransfertTotal + $fraisRetraitTotal;
 
     if ($client['solde'] < $totalADeduire) {
         return redirect()->to('/transfert/multiple')->with('error',
@@ -605,7 +572,7 @@ public function transfertMultipleValider()
     $this->db = \Config\Database::connect();
     $this->db->transStart();
 
-    // Debiter l'expediteur une seule fois pour le total
+    // Debiter l'expediteur une seule fois pour le total reellement distribue
     $clientModel->update($clientId, [
         'solde' => $client['solde'] - $totalADeduire,
     ]);
@@ -640,8 +607,12 @@ public function transfertMultipleValider()
         return redirect()->to('/transfert/multiple')->with('error', 'Une erreur est survenue, réessaie.');
     }
 
+    $messageReste = $reste > 0
+        ? ' (reste non distribué de ' . number_format($reste, 0, ',', ' ') . ' Ar, conservé sur votre compte)'
+        : '';
+
     return redirect()->to('/dashboard')->with('success',
-        'Envoi de ' . number_format($montantTotal, 0, ',', ' ') . ' Ar réparti équitablement entre ' . $nbDestinataires . ' destinataires effectué.');
+        'Envoi de ' . number_format($montantReellementDistribue, 0, ',', ' ') . ' Ar réparti équitablement entre ' . $nbDestinataires . ' destinataires effectué.' . $messageReste);
 }
 
     public function logout()

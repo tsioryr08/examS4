@@ -176,9 +176,33 @@ h6 {
     color: #fff !important;
 }
 
+.btn-outline-primary {
+    border: 1px solid var(--mm-olive-700);
+    color: var(--mm-olive-700) !important;
+    background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--mm-olive-700), var(--mm-olive-600)) !important;
+    color: #fff !important;
+    border-color: var(--mm-olive-600);
+}
+
 .btn-outline-secondary {
     border: 1px solid rgba(255, 255, 255, 0.5);
     color: #fff !important;
+}
+
+.btn-outline-danger {
+    border: 1px solid var(--mm-terracotta-600);
+    color: var(--mm-terracotta-600) !important;
+    background-color: transparent;
+}
+
+.btn-outline-danger:hover {
+    background: linear-gradient(135deg, var(--mm-terracotta-600), var(--mm-terracotta-700)) !important;
+    color: #fff !important;
+    border-color: var(--mm-terracotta-700);
 }
 
 .btn-link {
@@ -250,6 +274,43 @@ h6 {
 .mm-balance-card {
     background: linear-gradient(135deg, var(--mm-olive-900), var(--mm-olive-700));
     color: #fff;
+}
+
+/* Background image with subtle blur for the balance card */
+.mm-balance-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 160px;
+}
+.mm-balance-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('../baobab.jpeg');
+    background-size: cover;
+    /* focus slightly higher on the image so the baobab is more visible */
+    background-position: center 28%;
+    /* reduce blur so the photo is more visible while keeping it subtle */
+    filter: blur(4px) saturate(0.85) grayscale(0.03);
+    opacity: 0.42;
+    transform: scale(1.08) translateY(-6%);
+    z-index: 0;
+}
+.mm-balance-card .card-body {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 1.75rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+}
+
+/* Slight overlay to soften the image and tint with olive/terracotta */
+.mm-balance-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(37,51,38,0.18), rgba(151,96,79,0.06));
+    z-index: 0;
+    pointer-events: none;
 }
 
 .mm-balance-card .card-subtitle,

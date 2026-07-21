@@ -24,8 +24,8 @@
         <tr>
             <td><?= esc($t['nom']) ?></td>
             <td>
-                <a href="/types-operation/edit/<?= $t['id'] ?>" class="btn btn-sm btn-warning">Modifier</a>
-                <a href="/types-operation/delete/<?= $t['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer ce type ?')">Supprimer</a>
+                <a href="/types-operation/edit/<?= $t['id'] ?>" class="btn btn-sm btn-outline-primary">Modifier</a>
+                <a href="/types-operation/delete/<?= $t['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer ce type ?')">Supprimer</a>
             </td>
         </tr>
         <?php endforeach; ?>
