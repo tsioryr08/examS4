@@ -647,10 +647,11 @@ public function transfertMultipleValider()
     // Determiner si le destinataire est chez NOTRE operateur
     $operateurModel = new OperateurModel();
     $operateurDestinataire = $operateurModel->where('code', $prefixeDestinataire)->first();
-
+    $promotion =$operateurModel->get('pourcent_promo');
     $fraisTransfert = $this->calculerFrais($montant, $client['id_operateur'], $idTypeTransfert);
-    $Promo= $montant * ($commission['pourcent_promo'] / 100);
-    $fraisTransfertAvecPromo = $fraisTransfert + $Promo;
+    // $Promo= $montant * ($commission['pourcent_promo'] / 100);
+    // $fraisTransfertAvecPromo = $fraisTransfert + $Promo;
+    $fraiAvecPromo= ($fraisTransfert*$promotion)/100;
 
     if ($operateurDestinataire) {
         //si meme operateur que l'envoyeur
@@ -670,7 +671,7 @@ public function transfertMultipleValider()
 
         }
 //prendre le frais deja avec la promo
-        $totalADeduire = $montant + $fraisTransfertAvecPromo + $fraisRetrait;
+        $totalADeduire = $montant + $fraisAvecPromo + $fraisRetrait;
 
         if ($client['solde'] < $totalADeduire) {
             return redirect()->to('/transfert')->with('error', 'Solde insuffisant.');
@@ -696,7 +697,7 @@ public function transfertMultipleValider()
             'frais_retrait'      => $fraisRetrait,
             'id_autre_operateur' => null,
             'date_operation'     => date('Y-m-d H:i:s'),
-            
+
         ]);
 
         $this->db->transComplete();

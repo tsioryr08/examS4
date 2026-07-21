@@ -71,7 +71,7 @@
   - [ok] Enregistrer une opération par destinataire dans l'historique
 
 ## ALEA
-
+## Tsiory
 - [ok] fonction pour Rajouter un pourcent_promo pour le frais de transfert de meme operateur seulement 
   - [ok] prendre la meme fonction transfertValider() mais rajouter la promo avec le frais de transfert
   - [ok] erreur si autres operateurs
