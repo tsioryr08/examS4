@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Opérateur</title>
+    <title>Pay-EO - Gestion Opérateur</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link href="<?= base_url('assets/css/mobile-money.css') ?>" rel="stylesheet">
 </head>
@@ -11,16 +11,23 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark mm-navbar mb-4">
     <div class="container">
-        <a class="navbar-brand" href="/">Gestion Opérateur</a>
-        <div class="navbar-nav me-auto">
-            <a class="nav-link" href="/operateurs">Opérateurs</a>
-            <a class="nav-link" href="/types-operation">Types d'opération</a>
-            <a class="nav-link" href="/baremes">Barème de frais</a>
-            <a class="nav-link" href="/gains">Gains</a>
-            <a class="nav-link" href="/comptes-clients">Comptes clients</a>
+        <div class="navbar-brand d-flex align-items-center">
+            <span style="font-size: 1.3rem; font-weight: 700; color: #f7f4ed; margin-right: 0.5rem;">Pay-EO</span>
         </div>
-        <div class="d-flex">
-            <a href="<?= site_url('login') ?>" class="btn btn-outline-light">Se déconnecter</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="/operateurs">Opérateurs</a>
+                <a class="nav-link" href="/types-operation">Types d'opération</a>
+                <a class="nav-link" href="/baremes">Barème de frais</a>
+                <a class="nav-link" href="/gains">Gains</a>
+                <a class="nav-link" href="/comptes-clients">Comptes clients</a>
+            </div>
+            <div class="d-flex">
+                <a href="<?= site_url('login') ?>" class="btn btn-outline-light">Se déconnecter</a>
+            </div>
         </div>
     </div>
 </nav>

@@ -30,8 +30,8 @@
 
 <?php foreach ($groupes as $groupe): ?>
 <div class="card mb-4">
-    <div class="card-header bg-dark text-white">
-        <strong><?= esc($groupe['libelle']) ?></strong> (<?= esc($groupe['code']) ?>)
+    <div class="card-header" style="background-color: rgba(95, 115, 83, 0.08); border-bottom: 2px solid var(--mm-olive-600);">
+        <strong style="color: var(--mm-olive-900);"><?= esc($groupe['libelle']) ?></strong> (<?= esc($groupe['code']) ?>)
     </div>
     <div class="card-body">
         <div class="row">
@@ -59,8 +59,8 @@
                                 </td>
                                 <td><?= number_format($ligne['frais'], 0, ',', ' ') ?> Ar</td>
                                 <td class="text-nowrap">
-                                    <a href="/baremes/edit/<?= $ligne['id'] ?>" class="btn btn-sm btn-warning">✎</a>
-                                    <a href="/baremes/delete/<?= $ligne['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette tranche ?')">✕</a>
+                                    <a href="/baremes/edit/<?= $ligne['id'] ?>" class="btn btn-sm btn-outline-primary">✎</a>
+                                    <a href="/baremes/delete/<?= $ligne['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer cette tranche ?')">✕</a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

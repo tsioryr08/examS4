@@ -27,7 +27,7 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Enregistrer</button>
-    <a href="/operateurs" class="btn btn-secondary">Annuler</a>
+    <a href="/operateurs" class="btn btn-outline-primary">Annuler</a>
 </form>
 
 <?= $this->endSection() ?>

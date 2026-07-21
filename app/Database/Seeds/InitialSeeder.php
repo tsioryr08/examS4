@@ -12,8 +12,8 @@ class InitialSeeder extends Seeder
         // Operateurs
         // ============================================
         $this->db->table('operateur')->insertBatch([
-            ['libelle' => 'Airtel',  'code' => '033'],
-            ['libelle' => 'Airtel', 'code' => '037'],
+            ['libelle' => 'Airtel',  'code' => '033','pourcent_promo' => '10'],
+            ['libelle' => 'Airtel', 'code' => '037','pourcent_promo' => '10'],
         ]);
 
         // ============================================
@@ -135,7 +135,7 @@ class InitialSeeder extends Seeder
                 'nom'          => 'RASOANAIVO',
                 'prenom'       => 'Marie',
                 'solde'        => 20000,
-                'id_operateur' => 2,
+                'id_operateur' => 1,
             ],
         ]);
     }

@@ -11,7 +11,7 @@ class ClientModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useTimestamps    = false;
-    protected $allowedFields    = ['numero', 'nom', 'prenom', 'solde', 'id_operateur'];
+    protected $allowedFields    = ['numero', 'nom', 'prenom', 'solde', 'id_operateur', 'pourcent_epargne','epargne'];
 
     protected $validationRules = [
         'id'            => 'permit_empty|integer',
@@ -43,5 +43,5 @@ class ClientModel extends Model
         return $this->set('solde', 'solde - ' . $montant, false)
             ->where('id', $idClient)
             ->update();
+    } 
     }
-}
