@@ -69,3 +69,12 @@
   - [ok] Vérifier solde suffisant pour couvrir toutes les parts + tous les frais
   - [ok] Vérifier que chaque numéro destinataire existe
   - [ok] Enregistrer une opération par destinataire dans l'historique
+
+## ALEA
+
+- [ok] fonction pour Rajouter un pourcent_promo pour le frais de transfert de meme operateur seulement 
+  - [ok] prendre la meme fonction transfertValider() mais rajouter la promo avec le frais de transfert
+  - [ok] erreur si autres operateurs
+- [] pages touchees par la modification base 
+  -routes [ok]
+  -model[ok]
